@@ -51,7 +51,6 @@ var zookeeper = {
     _swap: function(elem1, elem2, cancelProcessing) {
 
         var tmp;
-
         var coords1 = self._getCoords(elem1);
         var coords2 = self._getCoords(elem2);
 
@@ -78,6 +77,7 @@ var zookeeper = {
     },
     // 新增一個方塊
     _addPiece: function(x, y, type, top) {
+
         var div = $('<div class="item"><div>');
         top = top ? (-1 - 2 * top) * 40 : y * 40;
         div.css({ top: top + 'px', left: (x * 40) + 'px', backgroundImage: 'url("img/ct' + type + '.png")' });
@@ -85,12 +85,13 @@ var zookeeper = {
 
         return div;
     },
-    // 主要加工的地方
+    // 主要邏輯的地方
     _processField: function(elem1, elem2) {
 
         var tmp = [];
         var x, y;
 
+        // 初始化
         for (x = 0; x < 8; x++) {
             tmp[x] = [];
             for (y = 0; y < 8; y++) {
@@ -98,23 +99,29 @@ var zookeeper = {
             }
         }
 
+        // 取出上下或左右有3個相同方塊
         for (x = 0; x < 8; x++) {
             for (y = 0; y < 8; y++) {
+                
+                // 判斷方塊的上與下是否相同
                 if (y > 0 && y < 7 && field[x][y] == field[x][y - 1] && field[x][y] == field[x][y + 1]) {
-                    tmp[x][y] = 1;
-                    tmp[x][y - 1] = 1;
-                    tmp[x][y + 1] = 1;
+                    tmp[x][y] = 1;      // 本身
+                    tmp[x][y - 1] = 1;  // 上方方塊
+                    tmp[x][y + 1] = 1;  // 下方方塊
                 }
+                
+                // 判斷方塊的左與右是否相同
                 if (x > 0 && x < 7 && field[x][y] == field[x - 1][y] && field[x][y] == field[x + 1][y]) {
-                    tmp[x][y] = 1;
-                    tmp[x - 1][y] = 1;
-                    tmp[x + 1][y] = 1;
+                    tmp[x][y] = 1;      // 本身
+                    tmp[x - 1][y] = 1;  // 左方方塊
+                    tmp[x + 1][y] = 1;  // 右方方塊
                 }
             }
         }
 
         var deleted = 0;
 
+        // 移除相同的方塊
         for (x = 0; x < 8; x++) {
             for (y = 0; y < 8; y++) {
                 if (tmp[x][y] == 1) {
@@ -125,6 +132,7 @@ var zookeeper = {
             }
         }
 
+        // 移除方塊的 fadeout 效果
         $('.remove').animate({ opacity: 0 }, 500, function() {
             $('.remove').remove();
 			$('.remove').unbind('click');
