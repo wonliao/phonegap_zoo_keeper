@@ -20,10 +20,12 @@ var zookeeper = {
 
         self._processField();
     },
+    // 點擊
 	_click: function() {
 
 	  var $elem = $(this);
 	  
+      // 點擊第二下
 	  if (self.selectedItem != null) {
 
 		  var backgroundImg = self.selectedItem.css("background-image");
@@ -31,9 +33,12 @@ var zookeeper = {
 		  var type = backgroundImg.charAt(num - 3);
 		  self.selectedItem.css({ backgroundImage: 'url("img/ct' + type + '.png")' });
 	  
+          // 交換2個方塊
 		  self._swap(self.selectedItem, $elem);
 		  self.selectedItem = null;
-	  } else {
+	  
+      // 點擊第一下
+      } else {
 
 		  var backgroundImg = $elem.css("background-image");
 		  var num = backgroundImg.indexOf(".png")
@@ -42,6 +47,7 @@ var zookeeper = {
 		  self.selectedItem = $elem;
 	  }
 	},
+    // 交換2個方塊
     _swap: function(elem1, elem2, cancelProcessing) {
 
         var tmp;
@@ -70,7 +76,7 @@ var zookeeper = {
             elem2.attr('id', tmp);
         }
     },
-
+    // 新增一個方塊
     _addPiece: function(x, y, type, top) {
         var div = $('<div class="item"><div>');
         top = top ? (-1 - 2 * top) * 40 : y * 40;
@@ -79,28 +85,7 @@ var zookeeper = {
 
         return div;
     },
-
-    _hasMove: function() {
-        var x, y, value;
-        for (x = 0; x < 8; x++) {
-            for (y = 0; y < 8; y++) {
-                if (y > 0 && y < 7 && field[x][y - 1] == field[x][y + 1]) {
-                    value = field[x][y - 1];
-                    if ((x > 0 && field[x - 1][y] == value) || (x < 7 && field[x + 1][y] == value)) {
-                        return true;
-                    }
-                }
-                if (x > 0 && x < 7 && field[x + 1][y] == field[x - 1][y]) {
-                    value = field[x - 1][y];
-                    if ((y > 0 && field[x][y - 1] == value) || (y < 7 && field[x][y + 1] == value)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    },
-
+    // 主要加工的地方
     _processField: function(elem1, elem2) {
 
         var tmp = [];
@@ -158,6 +143,7 @@ var zookeeper = {
         }
     },
 
+    // 向下填滿
     _caving: function() {
 
         var x, y, yfull, deleted, delay = 0;
@@ -190,19 +176,9 @@ var zookeeper = {
         setTimeout('self._processField()', delay);
     },
 
+    // 方塊的座標方置
     _getCoords: function(elem) {
         var id = elem.attr('id');
         return { x: parseInt(id.charAt(2)), y: parseInt(id.charAt(3)) };
-    },
-
-    _debug: function() {
-        var x, y, str = '';
-        for (y = 0; y < 8; y++) {
-            for (x = 0; x < 8; x++) {
-                str += field[x][y];
-            }
-            str += "\n";
-        }
-        console.log(str);
     }
 };
