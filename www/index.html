@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
+        <link rel="stylesheet" type="text/css" href="css/index.css" />
+        <title>Hello World</title>
+        <script type="text/javascript" src="cordova.js"></script>
+        <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+        <script type="text/javascript" src="js/zookeeper.js"></script>
+        <script type="text/javascript" src="js/index.js"></script>
+		<script>
+            app.initialize();
+        </script>
+
+    </head>
+    <body>
+		<div id="billboard" style="height:100px; width:320px; padding:0px;">
+        	<ul style="list-style:none; width:320px; height:100px; padding:0px; border:0px; margin:0px; text-align:center;">
+            	<li style="float:left; width:160px; height:100px; background:#F00; ">
+                	<div style="clear:both; height:10px;"></div>
+                	<span style="font-size:24px; color:#FFF;"></span>
+                    <div style="clear:both; height:0px;"></div>
+                    <span style="font-size:48px; color:#FFF;">分數</span>
+                </li>
+                <li style="float:left; width:160px; height:100px; background:#333;">
+                	<div style="clear:both; height:10px;"></div>
+                	<span style="font-size:24px; color:#FFF;"></span>
+                    <div style="clear:both; height:0px;"></div>
+                    <span id="player1_score" style="font-size:48px; color:#FFF;">0</span>
+                </li>
+            </ul>
+        </div>
+        <div style="clear:both; height:10px; width:320px;"></div>
+        <div id="game_table" style="width:320px; position:absolute; left:0px;">
+        	<div id="field"></div>
+        </div>
+
+    </body>
+</html>

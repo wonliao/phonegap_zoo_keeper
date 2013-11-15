@@ -1,0 +1,356 @@
+var _xnum = 7;
+var _ynum = 7;
+var _cdim = 34;
+var _map = [];
+var _selected = [];
+var _moving = false;
+var _delay;
+var _hitArray = [];
+function CubeVo() {
+	this.type = 0;
+	this.selected = false;
+	this.cube = null;
+	this.vanishing = false;
+	this.downing = false;
+	this.indexX = 0;
+	this.indexY = 0;
+}
+function HitVo() {
+	var _instance = this;
+	this.x1 = 0;
+	this.y1 = 0;
+	this.x2 = 0;
+	this.y2 = 0;
+	this.from = function(pX,pY) {
+		_instance.x1 = pX;
+		_instance.y1 = pY;
+	}
+	this.to = function(pX,pY) {
+		_instance.x2 = pX;
+		_instance.y2 = pY;
+	}
+	this.contains = function(pVo) {
+		if (_instance.xLine() == pVo.xLine() && _instance.xLine() == 0 && pVo.x1 == _instance.x1) {
+			if (_instance.y1 <= pVo.y1 && _instance.y2 >= pVo.y2)
+				return true;
+		}
+		if (_instance.yLine() == pVo.yLine() && _instance.yLine() == 0 && pVo.y1 == _instance.y1) {
+			if (_instance.x1 <= pVo.x1 && _instance.x2 >= pVo.x2)
+				return true;
+		}
+			
+		return false;
+	}
+	this.type = 0;
+	
+	this.xLine = function() {
+		return _instance.x2 - _instance.x1;
+	}
+	this.yLine = function() {
+		return _instance.y2 - _instance.y1;
+	}
+}
+$(document).ready(function() {
+	initMap();
+	});
+function initMap() {
+	$("#game_mask").css("display","none");
+	$("#msg").css("display","block");
+	if (_delay)
+		window.clearTimeout(_delay);
+	$("#game_mask").empty();
+	if($("#selectBox").html() != null)
+		$("#selectBox").css("display","none")
+	else {
+		$("<div id='selectBox' class='selectB'></div>").appendTo("#game_table");
+		$("#selectBox").css("display","none").click(function(e) {
+			$(e.currentTarget).css("display","none");
+			_map[_selected[0].x][_selected[0].y].cube.children("img").attr("src","image/ct"+_map[_selected[0].x][_selected[0].y].type+".png");
+			_selected = [];
+			return false;
+		});
+	}
+	
+	_map = [];
+	_selected = [];
+	for (var i = 0;i < _xnum; i++) {
+		_map[i] = [];
+		for (var j=0;j < _ynum; j++) {
+			var _rnd = Math.floor(Math.random()*5)+1;
+			var _div = $("<div class='cube'></div>").appendTo("#game_mask");
+			_div.css({
+				"width":"34",
+				"height":"34",
+				"left":i*_cdim,
+				"top":j*_cdim
+			}).append("<img src='image/ct"+_rnd+".png'>").bind({
+				"click" : function(e) {
+					cubeClick(e);
+				}
+			});
+			var _vo = new CubeVo();
+			_vo.indexX = i;
+			_vo.indexY = j;
+			_vo.type = _rnd;
+			_vo.cube = _div;
+			_map[i].push(_vo);
+		}
+	}
+	
+	if (checkVanish()) {
+		_delay = window.setTimeout(initMap, 100);
+//		initMap();
+	} else {
+		$("#game_mask").css("display","block");
+		$("#msg").css("display","none");
+	}
+}
+function cubeClick(e) {
+	if (_moving)
+		return;
+	
+	var _div = $(e.currentTarget);
+	var _sx = -1;
+	var _sy = -1;
+	for (var i=0;i < _map.length; i++) {
+		for (var j=0;j < _map[i].length; j++) {
+			if (_map[i][j].cube.is(_div)) {
+				_sx = i;
+				_sy = j;
+				break;
+			}
+		}
+	}
+	_div.children("img").attr("src","image/ct"+_map[_sx][_sy].type+"_2.png");
+	_selected.push({x:_sx,y:_sy});
+	if (_selected.length == 1) {
+		$("#selectBox").css({
+			"left": $("#game_mask").position().left+ _div.position().left - 3,
+			"top":$("#game_mask").position().top + _div.position().top - 3,
+			"z-index":100,
+			"display":"block"
+		});
+	} else {
+		$("#selectBox").css({"display":"none"});
+		switchCube(false);
+	}
+}
+function switchCube(pBack) {
+	var _x1 = _selected[0].x;
+	var _y1 = _selected[0].y;
+	var _x2 = _selected[1].x;
+	var _y2 = _selected[1].y;
+	var _c1 = _map[_x1][_y1].cube;
+	var _c2 = _map[_x2][_y2].cube;
+	var _p1 = {x:_c1.position().left, y:_c1.position().top};
+	var _p2 = {x:_c2.position().left, y:_c2.position().top};
+	_c1.children("img").attr("src","image/ct"+_map[_x1][_y1].type+".png");
+	_c2.children("img").attr("src","image/ct"+_map[_x2][_y2].type+".png");
+	if (Math.abs(_x1 - _x2) + Math.abs(_y1 - _y2) == 1) {
+		_moving = true;
+		_c1.animate({
+			"left":_p2.x,
+			"top":_p2.y
+		}, 100, function() {
+			_c2.css({"left":_p1.x,"top":_p2.y});
+			var _tmp = _map[_x1][_y1];
+			_tmp.indexX = _x2;
+			_tmp.indexY = _y2;
+			_map[_x1][_y1] = _map[_x2][_y2];
+			_map[_x2][_y2] = _tmp;
+			_map[_x1][_y1].indexX = _x1;
+			_map[_x1][_y1].indexY = _y1;
+			if (! pBack) {
+				_delay = window.setTimeout(switchDone, 300);
+			} else {
+				_moving = false;
+				_selected = [];
+			}
+		});
+		_c2.animate({
+			"left":_p1.x,
+			"top":_p1.y
+		}, 100);
+	} else
+		_selected = [];
+}
+function switchDone() {
+	window.clearTimeout(_delay);
+	if (checkVanish()) {
+		_delay = window.setTimeout(addNewCubic, 300);
+		destroyLinked();
+	} else
+		switchCube(true);
+}
+function checkVanish() {
+	_hitArray = [];
+	for (var i=0; i< _xnum; i++) {
+		for (var j = 0; j < _ynum; j++) {
+			var _type = _map[i][j].type;
+			var _hit = 0;
+			var _exist = false;
+			for (var k = i + 1; k < _xnum && k < i + 5; k++) {
+				if (_type == _map[k][j].type)
+					_hit ++;
+				else
+					break;
+			}
+			if (_hit >= 2) {
+				var _vox = new HitVo();
+				_vox.from(i, j);
+				_vox.to(i + _hit, j);
+				_vox.type = _type;
+				for (var kk = 0; kk < _hitArray.length; kk ++) {
+					var _oldVox = _hitArray[kk];
+					if (_oldVox.contains(_vox)) {
+						_exist = true;
+						break;
+					}
+				}
+				if (! _exist)
+					_hitArray.push(_vox);
+			}
+			
+			_hit = 0;
+			for (var l = j + 1; l < _ynum && l < j + 5; l++) {
+				if (_type == _map[i][l].type)
+					_hit ++;
+				else
+					break;
+			}
+			if (_hit >= 2) {
+				var _voy = new HitVo();
+				_voy.from(i, j);
+				_voy.to(i, j + _hit);
+				_voy.type = _type;
+				_exist = false;
+				for (var ll = 0; ll < _hitArray.length; ll ++) {
+					var _oldVoy = _hitArray[ll];
+					if (_oldVoy.contains(_voy)) {
+						_exist = true;
+						break;
+					}
+				}
+				if (! _exist)
+					_hitArray.push(_voy);
+			}
+		}
+	}
+	if (_hitArray.length > 0)
+		return true;
+	return false;
+}
+function destroyLinked() {
+	var _cleanNumber = 0;
+	var _junit;
+	var _vo;
+	for (var k = 0; k < _hitArray.length; k++) {
+		var _hitData = _hitArray[k];
+		var i = 0;
+		var j = 0;
+		if (_hitData.xLine() == 0) {
+			_cleanNumber += _hitData.y2 - _hitData.y1 + 1;
+			for (i=0;i< _xnum;i++) {
+				for (j = 0; j < _ynum; j++) {
+					_vo = _map[i][j];
+					_junit = _vo.cube;
+					if (i == _hitData.x1 && (j >= _hitData.y1 && j <= _hitData.y2)) {
+						if (! _vo.vanishing) {
+							cleanAni(_junit);
+							_vo.vanishing = true;
+						}
+					}
+				}
+			}
+		} else {
+			_cleanNumber += _hitData.x2 - _hitData.x1 + 1;
+			for (i=0;i< _xnum;i++) {
+				for (j = 0; j < _ynum; j++) {
+					_vo = _map[i][j];
+					_junit = _vo.cube;
+					if (j == _hitData.y1 && (i >= _hitData.x1 && i <= _hitData.x2)) {
+						if (! _vo.vanishing) {
+							cleanAni(_junit);
+							_vo.vanishing = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+function cleanAni(target) {
+	target.children("img").attr("src","image/vanish.png").css({"width":"1","height":"1","left":"17px","top":"17px"}).animate({
+		"width":"34","height":"34",
+		"left":"0","top":"0"
+	},250,function() {cleanAniComplete(target);});
+}
+function cleanAniComplete(target) {
+	target.unbind();
+	target.remove();
+}
+function addNewCubic() {
+	window.clearTimeout(_delay);
+	var i = 0;
+	var j = 0;
+	for (i=0;i< _xnum;i++) {
+		for (j = 0; j < _map[i].length; j++) {
+			if (_map[i][j].vanishing) {
+				_map[i][j].cubic = null;
+				_map[i].splice(j, 1);
+				j --;
+			}
+		}
+	}
+	for (i = 0; i < _xnum; i++) {
+		var _cuv = 0;
+		while (_map[i].length < _ynum) {
+			var _rnd = Math.floor(Math.random() * 5)+1;
+			_cuv ++;
+			var _div = $("<div class='cube'></div>").appendTo("#game_mask");
+			_div.css({
+				"width":"34",
+				"height":"34",
+				"left":i*_cdim,
+				"top":-_cuv*_cdim
+			}).append("<img src='image/ct"+_rnd+".png'>").bind({
+				"click" : function(e) {
+					cubeClick(e);
+				}
+			});
+			var _vo = new CubeVo();
+			_vo.type = _rnd;
+			_vo.cube = _div;
+			_vo.indexX = i;
+			_vo.indexY = 5 - _map[i].length;
+			_vo.downing = true;
+			_map[i].splice(0, 0, _vo);
+		}
+	}
+	for (i = 0; i < _xnum; i ++) {
+		for (j = 0; j < _map[i].length; j++) {
+			if (_map[i][j].downing) {
+				var _div = _map[i][j].cube;
+				_div.animate({
+					"top":j*_cdim
+				}, 500);
+			} else {
+				if (_map[i][j].indexY != j) {
+					_map[i][j].indexY = j;
+					_map[i][j].cube.animate({"top":j*_cdim}, 500);
+				}
+			}
+		}
+	}
+	_delay = window.setTimeout(moveDownDone, 800);
+}
+function moveDownDone() {
+	window.clearTimeout(_delay);
+	if (checkVanish()) {
+		_delay = window.setTimeout(addNewCubic, 300);
+		destroyLinked();
+	} else {
+		_selected = [];
+		_moving = false;
+	}
+}
